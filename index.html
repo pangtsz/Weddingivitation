@@ -627,6 +627,31 @@
         document.addEventListener('click', enableAudioOnFirstInteraction, { once: true });
         document.addEventListener('touchstart', enableAudioOnFirstInteraction, { once: true });
         document.addEventListener('scroll', enableAudioOnFirstInteraction, { once: true });
+
+        // Stop & pause background music when leaving the page completely
+        function stopAudioOnLeave() {
+            pauseAudio();
+        }
+
+        window.addEventListener('beforeunload', stopAudioOnLeave);
+        window.addEventListener('pagehide', stopAudioOnLeave);
+
+        // Handle temporary page leaving (tab switching / backgrounding):
+        // Pause music when hidden, and resume from saved timestamp when visible again
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden') {
+                if (isPlaying) {
+                    audio.pause();
+                    // Audio element natively remembers currentTime when paused
+                }
+            } else if (document.visibilityState === 'visible') {
+                if (isPlaying) {
+                    audio.play().catch(err => {
+                        console.log("Resume playback prevented:", err);
+                    });
+                }
+            }
+        });
     </script>
 </body>
 </html>
